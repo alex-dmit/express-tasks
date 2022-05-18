@@ -1,0 +1,41 @@
+GET http://localhost:3000/api/hello
+
+###
+
+POST http://localhost:3000/api/getfullname
+Content-Type: application/json
+
+{
+    "name": "joDSA",
+    "surname": "smith"
+}
+
+# => "<h1>Jo Smith</h1>"
+
+###
+
+GET http://localhost:3000/userprofile?name=Jo&surname=Smith&email=test@test.ru&phone=12345
+
+# =>    <h1>User: Jo Smith</h1>
+#       <h2>Email: test@test.ru</h2>
+#       <h2>Phone: 12345</h2>
+
+#       <h3>Error: wrong email</h3>
+
+###
+
+GET http://localhost:3000/api/chat
+# => <ul>
+#       <li>Hello</li>
+#       <li>Hi</li>
+#       ...
+#    </ul>
+
+###
+
+POST http://localhost:3000/api/chat
+Content-Type: application/json
+
+{
+    "message": "Fine"
+}
