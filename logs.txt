@@ -1,0 +1,2 @@
+Method GET to the route /api/chat from ::ffff:127.0.0.1 at Sat May 21 2022 19:14:03 GMT+0300 (Москва, стандартное время)
+Method POST to the route /api/chat from ::ffff:127.0.0.1 at Sat May 21 2022 19:14:27 GMT+0300 (Москва, стандартное время)

@@ -2,17 +2,17 @@ const express = require('express')
 const app = express()
 const fs = require('fs')
 
+// middleware
 function logger(req, res, next) {
     const method = req.method
     const pathname = req.path
     const ip = req.ip
-    console.log('Logger')
-    console.log(method)
-    console.log(pathname)
-    console.log(ip)
-    new Date()
-    // Method GET to the route /api/chat from IP: 127.0.0.1 at 11:21
-    next()
+    try {
+        fs.appendFileSync('./log.txt', `Method ${method} to the route ${pathname} from ${ip} at ${new Date()}\n`)
+        next()
+    } catch (error) {
+        console.error(error)
+    }
 }
 
 app.use(express.json())
@@ -46,10 +46,18 @@ app.get('/userprofile', (req, res) => {
     res.send(html)
 })
 
+// Resource Restful API
+// CRUD (Create - POST, Read - GET, Update - PATCH/PUT, Delete - DELETE)
+// Entity (товар, message)
+
 // middleware chain
+// app.get('/api/chat', logger, (req, res) => {
+//     const messages = fs.readFileSync('./messages.txt', 'utf8').split('|')
+//     res.send(`<ul>${messages.reduce((acc, cur) => acc + `<li>${cur}</li>`, '')}</ul>`)
+// })
 app.get('/api/chat', logger, (req, res) => {
     const messages = fs.readFileSync('./messages.txt', 'utf8').split('|')
-    res.send(`<ul>${messages.reduce((acc, cur) => acc + `<li>${cur}</li>`, '')}</ul>`)
+    res.send(messages)
 })
 
 app.post('/api/chat', logger, (req, res) => {
@@ -59,6 +67,29 @@ app.post('/api/chat', logger, (req, res) => {
     res.status(201).send('Ok')
 })
 
+app.get('/api/chat/:index', logger, (req, res) => {
+    const index = req.params.index
+    const messages = fs.readFileSync('./messages.txt', 'utf8').split('|')
+    res.send(messages[+index])
+})
 
+app.delete('/api/chat/:index', logger, (req, res) => {
+    const index = req.params.index
+    const messages = fs.readFileSync('./messages.txt', 'utf8').split('|')
+    const newMessages = [...messages.slice(0, +index), ...messages.slice(+index + 1)]
+    fs.writeFileSync('./messages.txt', newMessages.join('|'))
+    res.send('Successful delete')
+})
+
+app.patch('/api/chat/:index', logger, (req, res) => {
+    const index = req.params.index
+    const message = req.body.message
+    const messages = fs.readFileSync('./messages.txt', 'utf8').split('|')
+    messages[+index] = message
+    fs.writeFileSync('./messages.txt', messages.join('|'))
+    res.send('Successful update')
+})
+
+app.use(express.static('./public'))
 
 app.listen(3000)

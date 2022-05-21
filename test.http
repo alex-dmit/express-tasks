@@ -37,5 +37,22 @@ POST http://localhost:3000/api/chat
 Content-Type: application/json
 
 {
-    "message": "Fine"
+    "message": "Fine2"
 }
+
+###
+
+GET http://localhost:3000/api/chat/2
+
+###
+
+PATCH  http://localhost:3000/api/chat/2
+Content-Type: application/json
+
+{
+    "message": "How????"
+}
+
+###
+
+DELETE  http://localhost:3000/api/chat/2
