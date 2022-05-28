@@ -1,3 +1,4 @@
+const { PrismaClient } = require('@prisma/client')
 const express = require('express')
 const app = express()
 const fs = require('fs')
@@ -17,35 +18,6 @@ function logger(req, res, next) {
 
 app.use(express.json())
 
-app.get('/api/hello', (req, res) => {
-    req.ip
-    res.send('Hello world')
-})
-
-app.post('/api/getfullname', (req, res) => {
-    const name = req.body.name
-    const surname = req.body.surname
-    // ...
-    res.send(`<h1>${name[0].toUpperCase() + name.slice(1).toLowerCase()} ${surname[0].toUpperCase() + surname.slice(1).toLowerCase()}</h1>`)
-    // res.send(req.body)
-})
-
-app.get('/userprofile', (req, res) => {
-    const userInfo = req.query
-    console.log(userInfo);
-    if (!userInfo.name) return res.send('<h3>Name required</h3>')
-    if (!userInfo.surname) return res.send('<h3>Surname required</h3>')
-    if (!userInfo.email) return res.send('<h3>Email required</h3>')
-    if (!userInfo.phone) return res.send('<h3>Phone required</h3>')
-    if (!/^[\w\.\-]+@[\w\.\-]+\.[a-zA-Z]{2,5}$/.test(userInfo.email)) return res.send('<h3>Wrong email</h3>')
-    const html = `
-    <h1>${userInfo.name + ' ' + userInfo.surname}</h1>
-    <h2>${userInfo.email}</h2>
-    <h2>${userInfo.phone}</h2>
-    `
-    res.send(html)
-})
-
 // Resource Restful API
 // CRUD (Create - POST, Read - GET, Update - PATCH/PUT, Delete - DELETE)
 // Entity (товар, message)
@@ -55,39 +27,70 @@ app.get('/userprofile', (req, res) => {
 //     const messages = fs.readFileSync('./messages.txt', 'utf8').split('|')
 //     res.send(`<ul>${messages.reduce((acc, cur) => acc + `<li>${cur}</li>`, '')}</ul>`)
 // })
-app.get('/api/chat', logger, (req, res) => {
-    const messages = fs.readFileSync('./messages.txt', 'utf8').split('|')
+
+const db = new PrismaClient()
+
+app.get('/api/chat', logger, async (req, res) => {
+    const messages = await db.message.findMany()
     res.send(messages)
 })
 
-app.post('/api/chat', logger, (req, res) => {
-    const message = req.body.message
-    const messages = fs.readFileSync('./messages.txt', 'utf8')
-    fs.writeFileSync('./messages.txt', messages + '|' + message)
-    res.status(201).send('Ok')
+app.post('/api/chat', logger, (req, res, next) => {
+    const body = req.body
+    const { text, ...rest } = body
+    if (typeof text === 'string' && Object.keys(rest).length === 0) {
+        next()
+    } else {
+        res.status(400).send({
+            error: "Wrong body"
+        })
+    }
+}, async (req, res) => {
+    const message = req.body // { text: 'Hello', awfulcode: 'Haha', test: 'reter' }
+    const messageFromDb = await db.message.create({
+        data: message
+    })
+    res.status(201).send(messageFromDb)
 })
 
-app.get('/api/chat/:index', logger, (req, res) => {
-    const index = req.params.index
-    const messages = fs.readFileSync('./messages.txt', 'utf8').split('|')
-    res.send(messages[+index])
+app.get('/api/chat/:id', logger, async (req, res) => {
+    const id = req.params.id
+    const messageFromDb = await db.message.findUnique({
+        where: {
+            id: +id
+        }
+    })
+    res.send(messageFromDb)
 })
 
-app.delete('/api/chat/:index', logger, (req, res) => {
-    const index = req.params.index
-    const messages = fs.readFileSync('./messages.txt', 'utf8').split('|')
-    const newMessages = [...messages.slice(0, +index), ...messages.slice(+index + 1)]
-    fs.writeFileSync('./messages.txt', newMessages.join('|'))
-    res.send('Successful delete')
+app.delete('/api/chat/:id', logger, async (req, res) => {
+    const id = req.params.id
+    try {
+        const messageFromDb = await db.message.delete({
+            where: { id: +id }
+        })
+        res.send(messageFromDb)
+    } catch (error) {
+        res.status(400).send({
+            error: "Wrong Id"
+        })
+    }
 })
 
-app.patch('/api/chat/:index', logger, (req, res) => {
-    const index = req.params.index
-    const message = req.body.message
-    const messages = fs.readFileSync('./messages.txt', 'utf8').split('|')
-    messages[+index] = message
-    fs.writeFileSync('./messages.txt', messages.join('|'))
-    res.send('Successful update')
+app.patch('/api/chat/:id', logger, async (req, res) => {
+    const id = req.params.id
+    const message = req.body
+    try {
+        const messageFromDb = await db.message.update({
+            where: { id: +id },
+            data: message
+        })
+        res.send(messageFromDb)
+    } catch (error) {
+        res.status(400).send({
+            error: "Wrong Id"
+        })
+    }
 })
 
 app.use(express.static('./public'))
