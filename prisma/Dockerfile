@@ -12,4 +12,5 @@ RUN npm install -g prisma --unsafe-perm
 # Copy schema and migration folder
 ADD ./ ./prisma/
 
-CMD [ "prisma", "migrate", "deploy" ]
+RUN prisma migrate deploy
+# CMD [ "prisma", "migrate", "deploy" ]
