@@ -2,5 +2,11 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 echo "Start pushing"
+
 git push origin master
+
 echo "Successful pushing"
+
+echo "Deploy starting"
+
+ssh test "cd /home/app && git reset --hard HEAD && git pull"
