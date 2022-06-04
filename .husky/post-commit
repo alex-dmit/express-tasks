@@ -9,4 +9,4 @@ echo "Successful pushing"
 
 echo "Deploy starting"
 
-ssh test "cd /home/app/express-tasks && git reset --hard HEAD && git pull"
+ssh test "cd /home/app/express-tasks && git reset --hard HEAD && git pull && chmod +x run.sh run-migrate.sh"
