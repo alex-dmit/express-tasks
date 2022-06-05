@@ -5,10 +5,13 @@ services:
     build:
       context: prisma
       dockerfile: Dockerfile
+      # args:
+      #   - DATABASE_URL=${DATABASE_URL}
     env_file:
       - .env
     depends_on:
       - db
+    command: ["prisma", "migrate", "deploy"]
 
   db:
     image: postgres
